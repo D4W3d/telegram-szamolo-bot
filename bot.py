@@ -15,7 +15,7 @@ def calc(message):
     try:
         data = message.text.strip().split()
         dolgozottnap = int(data[0])
-        tav = int(data[1])
+        tav = int(data[1])        # itt int-re javítva
         fogy = float(data[2])
         ar = int(data[3])
 
@@ -30,7 +30,7 @@ def calc(message):
             f"Gázolaj ára: {ar} Ft/l\n"
             f"Üzemanyag költség összesen: {round(uzemanyag_koltseg)} Ft"
         )
-        bot.send_message(message.chat.id, szoveg)
+        bot.reply_to(message, szoveg)
     except Exception as e:
         bot.reply_to(message, "Hibás adatbevitel. Kérlek így add meg:\n14 20 7 718")
 
