@@ -15,10 +15,10 @@ auto_lista = [
     ("Név3", "DEF-456"),
 ]
 
-# Kezdő üzenet, inline gombokkal
+# Kezdő üzenet, inline gombokkal (egymás alatt)
 def send_welcome(chat_id):
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("⛽ Üzemanyag", callback_data="option_1"))
+    markup.add(InlineKeyboardButton("⛽ Uzemanyag", callback_data="option_1"))
     markup.add(InlineKeyboardButton("🕰️ Túlóra", callback_data="option_2"))
     bot.send_message(chat_id, "Válassz egy opciót:", reply_markup=markup)
     user_states[chat_id] = "waiting_for_option"
@@ -55,17 +55,15 @@ def callback_query(call):
         napok = user_data[chat_id]['napok']
         osszes_ora = sum(ora for _, ora in napok)
 
-        # Formázott napok szöveg: pl. 15 (2h), 16 (1h)
         napok_szoveg = ", ".join(f"{nap} ({ora}h)" for nap, ora in napok)
 
         szoveg = (
-            f"{helyszin}\n"
+            f"Helyszín: {helyszin}\n"
             f"Napok: {napok_szoveg}\n"
             f"Összesen: {osszes_ora} óra\n"
-            f"Autó: {rendszam}"
+            f"Rendszám: {rendszam}"
         )
         bot.send_message(chat_id, szoveg)
-        # Vége a folyamatnak, töröljük az állapotot
         user_states.pop(chat_id, None)
         user_data.pop(chat_id, None)
         bot.answer_callback_query(call.id)
@@ -108,7 +106,7 @@ def message_handler(message):
             return
         user_data[chat_id]['helyszin'] = helyszin
         user_states[chat_id] = "waiting_for_hours"
-        bot.send_message(chat_id, "Add meg a napokat és az órákat szóközzel elválasztva, soronként! Például:\n15 1\n16 2\n")
+        bot.send_message(chat_id, "Add meg a napokat és az órákat szóközzel elválasztva, soronként! Például:\n15 1\n16 2\n(egész szám legyen az óra!)")
 
     elif state == "waiting_for_hours":
         lines = message.text.strip().split('\n')
@@ -122,7 +120,7 @@ def message_handler(message):
                 continue
             try:
                 nap = int(parts[0])
-                mennyi = int(parts[1])  # egész szám
+                mennyi = int(parts[1])
                 napok.append((nap, mennyi))
             except:
                 hibas_sorok.append(line)
@@ -134,13 +132,12 @@ def message_handler(message):
         user_data[chat_id]['napok'] = napok
         user_states[chat_id] = "waiting_for_car"
 
-        # Autók listája inline gombokkal
         markup = InlineKeyboardMarkup()
         for i, (nev, rendszam) in enumerate(auto_lista):
             szoveg = f"{i+1} {nev} {rendszam}"
             markup.add(InlineKeyboardButton(szoveg, callback_data=f"car_select_{i}"))
 
-        bot.send_message(chat_id, "Melyik autóval voltál ott?", reply_markup=markup)
+        bot.send_message(chat_id, "Melyik autóval voltál ott? Válassz az alábbi listából:", reply_markup=markup)
 
     else:
         send_welcome(chat_id)
