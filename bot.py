@@ -53,14 +53,14 @@ def callback_query(call):
         rendszam = auto_lista[idx][1]
         helyszin = user_data[chat_id].get("helyszin", "Ismeretlen helyszín")
         napok = user_data[chat_id]['napok']
-        osszes_ora = sum(ora for _, ora in napok)
+        osszes_ora = sum(int(ora) for _, ora in napok)
         napok_szoveg = ", ".join(f"{nap} ({int(ora)}h)" for nap, ora in napok)
 
         szoveg = (
-            f"{helyszin}\n"
+            f"Helyszín: {helyszin}\n"
             f"Napok: {napok_szoveg}\n"
             f"Összesen: {osszes_ora} óra\n"
-            f"Autó: {rendszam}"
+            f"Rendszám: {rendszam}"
         )
         bot.send_message(chat_id, szoveg)
         user_states.pop(chat_id, None)
@@ -133,8 +133,8 @@ def message_handler(message):
 
         markup = InlineKeyboardMarkup()
         for i, (nev, rendszam) in enumerate(auto_lista):
-            szoveg = f"{nev} {rendszam}"
-            markup.add(InlineKeyboardButton(szoveg, callback_data=f"car_select_{i}"))
+            gomb_szoveg = f"{nev} {rendszam}"
+            markup.add(InlineKeyboardButton(gomb_szoveg, callback_data=f"car_select_{i}"))
 
         bot.send_message(chat_id, "Melyik autóval voltál ott? Válassz:", reply_markup=markup)
 
