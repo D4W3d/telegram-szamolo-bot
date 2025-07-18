@@ -32,7 +32,7 @@ def callback_query(call):
 
     if call.data == "option_1":
         user_states[chat_id] = "waiting_for_calc_data"
-        bot.send_message(chat_id, "Add meg az adatokat szóközzel elválasztva (pl. 14 20 7 718):")
+        bot.send_message(chat_id, "Add meg az adatokat szóközzel elválasztva (pl.\n14\n20\n7\n718):")
         bot.answer_callback_query(call.id)
 
     elif call.data == "option_2":
@@ -42,17 +42,10 @@ def callback_query(call):
         bot.answer_callback_query(call.id)
 
     elif call.data.startswith("car_select_"):
-        if chat_id not in user_data or 'napok' not in user_data[chat_id]:
-            bot.send_message(chat_id, "Valami hiba történt, indítsd újra a folyamatot a /start paranccsal.")
-            return
         idx = int(call.data.split("_")[-1])
-        if idx < 0 or idx >= len(auto_lista):
-            bot.send_message(chat_id, "Érvénytelen autó választás.")
-            return
-
         rendszam = auto_lista[idx][1]
         helyszin = user_data[chat_id].get("helyszin", "Ismeretlen helyszín")
-        napok = user_data[chat_id]['napok']
+        napok = user_data[chat_id].get("napok", [])
         osszes_ora = sum(int(ora) for _, ora in napok)
         napok_szoveg = ", ".join(f"{nap} ({int(ora)}h)" for nap, ora in napok)
 
@@ -63,6 +56,7 @@ def callback_query(call):
             f"Rendszám: {rendszam}"
         )
         bot.send_message(chat_id, szoveg)
+
         user_states.pop(chat_id, None)
         user_data.pop(chat_id, None)
         bot.answer_callback_query(call.id)
@@ -105,7 +99,7 @@ def message_handler(message):
             return
         user_data[chat_id]['helyszin'] = helyszin
         user_states[chat_id] = "waiting_for_hours"
-        bot.send_message(chat_id, "Add meg a napokat és órákat szóközzel elválasztva, soronként. Például:\n15 2\n16 1")
+        bot.send_message(chat_id, "Add meg a napokat és órákat soronként, szóközzel elválasztva. Például:\n15 2\n16 1")
 
     elif state == "waiting_for_hours":
         lines = message.text.strip().split('\n')
@@ -119,22 +113,22 @@ def message_handler(message):
                 continue
             try:
                 nap = int(parts[0])
-                mennyi = int(parts[1])
-                napok.append((nap, mennyi))
+                ora = int(parts[1])
+                napok.append((nap, ora))
             except:
                 hibas_sorok.append(line)
 
         if hibas_sorok:
-            bot.send_message(chat_id, f"Hibás sor(ok):\n" + "\n".join(hibas_sorok) + "\nKérlek, próbáld újra.")
+            bot.send_message(chat_id, "Hibás sor(ok):\n" + "\n".join(hibas_sorok) + "\nKérlek, próbáld újra.")
             return
 
         user_data[chat_id]['napok'] = napok
         user_states[chat_id] = "waiting_for_car"
 
         markup = InlineKeyboardMarkup()
-        for i, (nev, rendszam) in enumerate(auto_lista):
+        for idx, (nev, rendszam) in enumerate(auto_lista):
             gomb_szoveg = f"{nev} {rendszam}"
-            markup.add(InlineKeyboardButton(gomb_szoveg, callback_data=f"car_select_{i}"))
+            markup.add(InlineKeyboardButton(gomb_szoveg, callback_data=f"car_select_{idx}"))
 
         bot.send_message(chat_id, "Melyik autóval voltál ott? Válassz:", reply_markup=markup)
 
