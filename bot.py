@@ -6,6 +6,19 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
 def start(message):
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    btn1 = types.InlineKeyboardButton("1️⃣ Üzemanyag kiszámolás", callback_data="run_a")
+    btn2 = types.InlineKeyboardButton("2️⃣ Túlóra számolás", callback_data="run_b")
+    markup.add(btn1, btn2)
+
+    bot.send_message(message.chat.id, "Mit szeretnél futtatni?", reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    if call.data == "run_a":
+
+@bot.message_handler(commands=['start'])
+def start(message):
     bot.reply_to(message, "Kérlek add meg az adatokat az alábbi formában:\n\n"
                            "dolgozottnap tav fogy ar\n\n"
                            "Példa:\n14 20 7 718")
@@ -33,5 +46,8 @@ def calc(message):
         bot.reply_to(message, szoveg)
     except Exception as e:
         bot.reply_to(message, "Hibás adatbevitel. Kérlek így add meg:\n14 20 7 718")
+
+ elif call.data == "run_b":
+        bot.send_message(call.message.chat.id, f"Ez a funkció még nem érhető el.\nEredmény: {result}")
 
 bot.polling()
