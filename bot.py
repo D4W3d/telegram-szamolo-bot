@@ -63,7 +63,7 @@ def callback_query(call):
                 f"{helyszin}\n"
                 f"{napok_str}\n"
                 f"Összesen: {ossz_orak} óra\n"
-                f"Rendszám: {rendszam}"
+                f"Autó: {rendszam}"
             )
             bot.send_message(chat_id, vegso_uzenet)
 
@@ -128,7 +128,7 @@ def handle_all_messages(message):
                 continue
             try:
                 nap = int(parts[0])
-                mennyi = float(parts[1])
+                mennyi = int(parts[1])
                 napok.append((nap, mennyi))
             except:
                 hibas_sorok.append(line)
