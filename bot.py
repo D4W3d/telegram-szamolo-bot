@@ -1,3 +1,4 @@
+
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot import types
@@ -17,8 +18,8 @@ auto_lista = [
 
 def send_welcome(chat_id):
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("⛽ Benzinkút", callback_data="option_1"))
-    markup.add(InlineKeyboardButton("🕰️ Fali óra", callback_data="option_2"))
+    markup.add(InlineKeyboardButton("⛽ Üzemanyag", callback_data="option_1"))
+    markup.add(InlineKeyboardButton("🕰️ Túlóra", callback_data="option_2"))
     bot.send_message(chat_id, "Válassz egy opciót:", reply_markup=markup)
     user_states[chat_id] = "waiting_for_option"
 
@@ -32,9 +33,8 @@ def callback_query(call):
 
     if call.data == "option_1":
         user_states[chat_id] = "waiting_for_calc_data"
-        bot.send_message(chat_id, "Add meg az adatokat szóközzel elválasztva (pl.\n14\n20\n7\n718):")
+        bot.send_message(chat_id, "Add meg az adatokat egy sorban szóközzel elválasztva:\n")
         bot.answer_callback_query(call.id)
-
     elif call.data == "option_2":
         user_states[chat_id] = "waiting_for_location"
         user_data[chat_id] = {}
@@ -42,21 +42,28 @@ def callback_query(call):
         bot.answer_callback_query(call.id)
 
     elif call.data.startswith("car_select_"):
+        if chat_id not in user_data or 'napok' not in user_data[chat_id]:
+            bot.send_message(chat_id, "Valami hiba történt, kérlek indítsd újra a folyamatot /start parancsal.")
+            return
         idx = int(call.data.split("_")[-1])
+        if idx < 0 or idx >= len(auto_lista):
+            bot.send_message(chat_id, "Érvénytelen autó választás.")
+            return
+
         rendszam = auto_lista[idx][1]
         helyszin = user_data[chat_id].get("helyszin", "Ismeretlen helyszín")
-        napok = user_data[chat_id].get("napok", [])
-        osszes_ora = sum(int(ora) for _, ora in napok)
+        napok = user_data[chat_id]['napok']
+        osszes_ora = sum(ora for _, ora in napok)
+
         napok_szoveg = ", ".join(f"{nap} ({int(ora)}h)" for nap, ora in napok)
 
         szoveg = (
-            f"Helyszín: {helyszin}\n"
+            f"{helyszin}\n"
             f"Napok: {napok_szoveg}\n"
             f"Összesen: {osszes_ora} óra\n"
-            f"Rendszám: {rendszam}"
+            f"Autó: {rendszam}"
         )
         bot.send_message(chat_id, szoveg)
-
         user_states.pop(chat_id, None)
         user_data.pop(chat_id, None)
         bot.answer_callback_query(call.id)
@@ -99,7 +106,7 @@ def message_handler(message):
             return
         user_data[chat_id]['helyszin'] = helyszin
         user_states[chat_id] = "waiting_for_hours"
-        bot.send_message(chat_id, "Add meg a napokat és órákat soronként, szóközzel elválasztva. Például:\n15 2\n16 1")
+        bot.send_message(chat_id, "Add meg a napokat és az órákat szóközzel elválasztva, soronként! Például:\n15 1\n16 2")
 
     elif state == "waiting_for_hours":
         lines = message.text.strip().split('\n')
@@ -113,24 +120,24 @@ def message_handler(message):
                 continue
             try:
                 nap = int(parts[0])
-                ora = int(parts[1])
-                napok.append((nap, ora))
+                mennyi = int(parts[1])
+                napok.append((nap, mennyi))
             except:
                 hibas_sorok.append(line)
 
         if hibas_sorok:
-            bot.send_message(chat_id, "Hibás sor(ok):\n" + "\n".join(hibas_sorok) + "\nKérlek, próbáld újra.")
+            bot.send_message(chat_id, f"Hibás formátum a következő sor(ok)ban:\n" + "\n".join(hibas_sorok) + "\nKérlek, próbáld újra.")
             return
 
         user_data[chat_id]['napok'] = napok
         user_states[chat_id] = "waiting_for_car"
 
         markup = InlineKeyboardMarkup()
-        for idx, (nev, rendszam) in enumerate(auto_lista):
-            gomb_szoveg = f"{nev} {rendszam}"
-            markup.add(InlineKeyboardButton(gomb_szoveg, callback_data=f"car_select_{idx}"))
+        for i, (nev, rendszam) in enumerate(auto_lista):
+            szoveg = f"{i+1} {nev} {rendszam}"
+            markup.add(InlineKeyboardButton(szoveg, callback_data=f"car_select_{i}"))
 
-        bot.send_message(chat_id, "Melyik autóval voltál ott? Válassz:", reply_markup=markup)
+        bot.send_message(chat_id, "Melyik autóval voltál ott?", reply_markup=markup)
 
     else:
         send_welcome(chat_id)
