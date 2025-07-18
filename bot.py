@@ -28,7 +28,64 @@ def callback_query(call):
         )
         bot.register_next_step_handler(call.message, calc)
     elif call.data == "run_other":
-        bot.send_message(call.message.chat.id, "Jelenleg nem elérhető funkció.")
+        user_data = {}
+
+def ask_location(message):
+    chat_id = message.chat.id
+    user_data[chat_id] = {}
+    user_data[chat_id]['helyszin'] = message.text.strip()
+    bot.send_message(chat_id, "Melyik nap és hány órát dolgoztál? Add meg szóközzel elválasztva (pl. '15 1'), több napot új sorba írva is adhatsz meg.")
+    bot.register_next_step_handler(message, ask_hours)
+
+def ask_hours(message):
+    chat_id = message.chat.id
+    lines = message.text.strip().split('\n')
+    napok = []
+    ossz_orak = 0
+    hibas_sorok = []
+    
+    for line in lines:
+        parts = line.strip().split()
+        if len(parts) != 2:
+            hibas_sorok.append(line)
+            continue
+        try:
+            nap = int(parts[0])       # hónap hányadik napja
+            mennyi = float(parts[1])  # hány órát
+            napok.append((nap, mennyi))
+            ossz_orak += mennyi
+        except:
+            hibas_sorok.append(line)
+            
+    if hibas_sorok:
+        bot.send_message(chat_id, f"Hibás formátum a következő sor(ok)ban:\n" + "\n".join(hibas_sorok) + "\nKérlek, próbáld újra.")
+        bot.register_next_step_handler(message, ask_hours)
+        return
+    
+    user_data[chat_id]['napok'] = napok
+    
+    helyszin = user_data[chat_id].get('helyszin', 'Ismeretlen hely')
+    szoveg = f"Túlórák helyszíne: {helyszin}\n"
+    szoveg += "Rögzített napok és órák:\n"
+    for nap, mennyi in napok:
+        szoveg += f" - {nap}. nap: {mennyi} óra\n"
+    szoveg += f"Összes túlóra: {ossz_orak} óra"
+    
+    bot.send_message(chat_id, szoveg)
+
+# A callback handler résznél (a 2-es gombhoz):
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    if call.data == "run_calc":
+        # Itt az 1-es gombhoz tartozó kódod (számoló funkció)
+        pass  # vagy tedd be a kódod ide
+    
+    elif call.data == "run_other":
+        chat_id = call.message.chat.id
+        bot.send_message(chat_id, "Hol túlóráztál?")
+        bot.register_next_step_handler(call.message, ask_location)
+
 
 # Számolás funkció
 def calc(message):
