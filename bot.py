@@ -15,7 +15,6 @@ auto_lista = [
     ("Skoda", "QWE-456"),
 ]
 
-# Kezdő üzenet, inline gombokkal (egymás alatt)
 def send_welcome(chat_id):
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("⛽ Üzemanyag", callback_data="option_1"))
@@ -33,7 +32,7 @@ def callback_query(call):
 
     if call.data == "option_1":
         user_states[chat_id] = "waiting_for_calc_data"
-        bot.send_message(chat_id,"Kérlek, add meg az adatokat az alábbi sablon szerint, minden adatot **külön sorba írva**:\n\n")
+        bot.send_message(chat_id, "Add meg az adatokat egy sorban szóközzel elválasztva:\n")
         bot.answer_callback_query(call.id)
     elif call.data == "option_2":
         user_states[chat_id] = "waiting_for_location"
@@ -55,7 +54,7 @@ def callback_query(call):
         napok = user_data[chat_id]['napok']
         osszes_ora = sum(ora for _, ora in napok)
 
-        napok_szoveg = ", ".join(f"{nap} ({ora}h)" for nap, ora in napok)
+        napok_szoveg = ", ".join(f"{nap} ({int(ora)}h)" for nap, ora in napok)
 
         szoveg = (
             f"{helyszin}\n"
