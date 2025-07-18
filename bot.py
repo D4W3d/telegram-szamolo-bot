@@ -1,5 +1,7 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot import types
+import os
 
 TOKEN = os.getenv("TOKEN")  # Railway/Render környezeti változó
 bot = telebot.TeleBot(TOKEN)
