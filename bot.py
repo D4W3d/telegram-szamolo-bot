@@ -17,8 +17,6 @@ def start(message):
 def callback_query(call):
     if call.data == "run_a":
 
-@bot.message_handler(commands=['start'])
-def start(message):
     bot.reply_to(message, "Kérlek add meg az adatokat az alábbi formában:\n\n"
                            "dolgozottnap tav fogy ar\n\n"
                            "Példa:\n14 20 7 718")
