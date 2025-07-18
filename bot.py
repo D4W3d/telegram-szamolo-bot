@@ -1,8 +1,8 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-API_TOKEN = '7693784330:AAHLvNFlBfdgcrqurDm-lR-ovyhQEjgMVRo'
-bot = telebot.TeleBot(API_TOKEN)
+TOKEN = os.getenv("TOKEN")  # Railway/Render környezeti változó
+bot = telebot.TeleBot(TOKEN)
 
 user_states = {}  # chat_id -> állapot pl. "waiting_for_location", "waiting_for_hours"
 user_data = {}    # chat_id -> adatokat tárol (pl. helyszin, napok)
