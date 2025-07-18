@@ -23,11 +23,11 @@ def calc(message):
         uzemanyag_koltseg = ossz_tav / 100 * fogy * ar
 
         szoveg = (
-            f"Ledolgozott napok száma: {dolgozottnap}\n"
-            f"Telephely oda-vissza: {tav*2} km\n"
-            f"Összesen: {ossz_tav} km\n"
-            f"Fogyasztás: {fogy} l/100km\n"
-            f"Gázolaj ára: {ar} Ft/l\n"
+            f"Ledolgozott napok száma: {dolgozottnap}"\n
+            f"Telephely oda-vissza: {tav*2} km"\n
+            f"Összesen: {ossz_tav} km"\n
+            f"Fogyasztás: {fogy} l/100km"\n
+            f"Gázolaj ára: {ar} Ft/l"\n
             f"Üzemanyag költség összesen: {round(uzemanyag_koltseg)} Ft"
         )
         bot.send_message(message.chat.id, szoveg)
