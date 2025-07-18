@@ -1,32 +1,34 @@
 import telebot
+from telebot import types
 import os
 
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("TOKEN")  # Állítsd be Render/Railway-en környezeti változóként
 bot = telebot.TeleBot(TOKEN)
 
+# /start parancs
 @bot.message_handler(commands=['start'])
 def start(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
-    btn1 = types.InlineKeyboardButton("1️⃣ Üzemanyag kiszámolás", callback_data="run_a")
-    btn2 = types.InlineKeyboardButton("2️⃣ Túlóra számolás", callback_data="run_b")
+    btn1 = types.InlineKeyboardButton("1️⃣ Számolás", callback_data="run_calc")
+    btn2 = types.InlineKeyboardButton("2️⃣ Másik funkció", callback_data="run_other")
     markup.add(btn1, btn2)
-
     bot.send_message(message.chat.id, "Mit szeretnél futtatni?", reply_markup=markup)
 
+# Callback kezelése
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    if call.data == "run_a":
+    if call.data == "run_calc":
+        bot.send_message(call.message.chat.id, "Add meg az adatokat szóközzel elválasztva az alábbi formátumban:\n\n14 20 7 718")
+        bot.register_next_step_handler(call.message, calc)
+    elif call.data == "run_other":
+        bot.send_message(call.message.chat.id, "Jelenleg nem elérhető funkció.")
 
-    bot.reply_to(message, "Kérlek add meg az adatokat az alábbi formában:\n\n"
-                           "dolgozottnap tav fogy ar\n\n"
-                           "Példa:\n14 20 7 718")
-
-@bot.message_handler(func=lambda m: True)
+# Számolás funkció
 def calc(message):
     try:
         data = message.text.strip().split()
         dolgozottnap = int(data[0])
-        tav = int(data[1])        # itt int-re javítva
+        tav = int(data[1])        # int-re javítva
         fogy = float(data[2])
         ar = int(data[3])
 
@@ -44,8 +46,5 @@ def calc(message):
         bot.reply_to(message, szoveg)
     except Exception as e:
         bot.reply_to(message, "Hibás adatbevitel. Kérlek így add meg:\n14 20 7 718")
-
- elif call.data == "run_b":
-        bot.send_message(call.message.chat.id, f"Ez a funkció még nem érhető el.\nEredmény: {result}")
 
 bot.polling()
