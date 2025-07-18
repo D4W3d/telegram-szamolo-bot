@@ -33,8 +33,7 @@ def callback_query(call):
 
     if call.data == "option_1":
         user_states[chat_id] = "waiting_for_calc_data"
-        bot.send_message(chat_id,"Kérlek, add meg az adatokat az alábbi sablon szerint, minden adatot **külön sorba írva**:\n\n"
-")
+        bot.send_message(chat_id,"Kérlek, add meg az adatokat az alábbi sablon szerint, minden adatot **külön sorba írva**:\n\n")
         bot.answer_callback_query(call.id)
     elif call.data == "option_2":
         user_states[chat_id] = "waiting_for_location"
